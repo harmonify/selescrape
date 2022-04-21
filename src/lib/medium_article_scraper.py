@@ -1,11 +1,33 @@
 from __future__ import annotations
+import math
+from time import sleep
 from bs4 import BeautifulSoup
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from lib import BaseScraper
 
 
 class MediumArticleScraper(BaseScraper):
-    def __init__(self, url: str, file_name: str = "", config_name: str = "", wait_for: str | None = None, wait_timeout: int = 0) -> None:
+    def __init__(self, url: str, file_name: str = "", config_name: str = "", wait_for: str | None = None, wait_timeout: int = 2) -> None:
         super().__init__(url, file_name, config_name, wait_for, wait_timeout)
+
+    def fetch_html(self) -> str:
+        """
+        Fetch the html dynamically using Selenium from the `url` attribute and
+        return the html.
+        """
+        if self.driver is None:
+            raise ValueError("Driver is needed to fetch the html")
+
+        self.driver.get(self.url)
+        sleep(1.5)
+        # scroll to bottom of the page
+        self.driver.execute_script(
+            "window.scrollTo(0, document.body.scrollHeight);")
+        sleep(max(2, self.wait_timeout))
+        self.html = self.driver.page_source
+        return self.html
 
     def scrape_article_content(self) -> str:
         """
@@ -22,8 +44,12 @@ class MediumArticleScraper(BaseScraper):
         for script in soup.find_all('script'):
             script.extract()
 
-        # append url to article container
-        # TODO: as metered content can't be fetch directly for now
+        # delete certain buggy elements when metered content is present
+        metered_content_soup = soup.find("article", class_="meteredContent")
+        if metered_content_soup:
+            metered_content_soup.div.div.extract()
+
+        # append url to bottom right of the article container
         soup.find("article").append(BeautifulSoup(
             f"<br><div style=\"z-index: 999\"><a href=\"{self.url}\" style=\"float: right\">View on Medium</a></div>", 'html.parser'))
 
