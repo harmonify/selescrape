@@ -26,6 +26,8 @@ You can run any _scraper_ or `utilities/config.py` directly to setup the configu
 
 ### Running Scraper
 
+You should run scrapers from `src/` directory.
+
 ```bash
 # run scraper without any arguments
 python base_scraper.py
