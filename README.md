@@ -22,7 +22,7 @@ pip install -r requirements.txt
 
 ### Setup
 
-You can run any _scraper_ or `utilities/config.py` directly to setup the configuration file for the first time.
+You can run any _scraper_ or `src/lib/utilities/config.py` directly to setup the configuration file for the first time.
 
 ### Running Scraper
 
@@ -30,10 +30,10 @@ You should run scrapers from `src/` directory.
 
 ```bash
 # run scraper without any arguments
-python base_scraper.py
+python <scraper-script>.py
 
 # or
-python base_scraper.py https://www.example.com
+python <scraper-script>.py https://www.example.com
 ```
 
 Refer to each scraper implementation for more details.
