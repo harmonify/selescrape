@@ -22,11 +22,13 @@ class BaseScraper:
     - `html`: the html content (available after calling `fetch_html`)
     - `config`: the `Config` object containing configurations
     - `file_path`: the file path to save the html
+    - `driver`: the Selenium driver
+    - `display_url`: the url to display in non-verbose mode
+    - `display_file_path`: the file path to display in non-verbose mode
 
     Methods:
     - `fetch_html()`: fetch the html from the `url` attribute and return the html
     - `save_html()`: save the html to `{config["output_dir_path"]}/{file_name}`
-    - `get_file_path()`: get the file path from `file_name` attribute
     """
 
     def __init__(self, url: str, file_name: str = "", config_name: str = "", wait_for: str | None = None, wait_timeout: int = 0) -> None:
@@ -37,41 +39,26 @@ class BaseScraper:
         self.wait_timeout = wait_timeout or 0
         self.html = ""
         self.config = Config(self.config_name).data
-        self.file_path = self.get_file_path()
-        self.display_url = self.url[:50] + \
-            "..." if not self.config["verbose_mode"] else self.url
-        self.display_file_path = self.file_path[:50] + \
-            "..." if not self.config["verbose_mode"] else self.file_path
+        self._init_file_path_attribute()
+        self._init_driver_attribute()
+        self._init_display_attributes()
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} url={self.url} file_name={self.file_name}>"
 
-    def fetch_html(self) -> str:
-        """
-        Scrape the html from the given url and return the response. Use Selenium
-        to fetch html dynamically when the `driver_path` config key is set.
-        """
-        print(f"Fetching html from {self.display_url}")
-        if self.config["driver_path"]:
-            self.html = self._fetch_html_with_selenium(
-                self.url, self.wait_for, self.wait_timeout)
-        else:
-            self.html = self._fetch_html_with_requests(self.url)
-        print("Done")
-        return self.html
+    def _init_file_path_attribute(self) -> None:
+        """ Set the `file_path` from `file_name` attribute. """
+        file_path = os.path.join(self.config["output_dir_path"], self.file_name.removesuffix(
+            ".html") + ".html")
+        if os.path.exists(file_path):
+            if input(f"{file_path} already exists. Overwrite? (y/n)") == "y":
+                os.remove(file_path)
+            else:
+                raise FileExistsError(f"{file_path} already exists")
+        self.file_path = file_path
 
-    def _fetch_html_with_requests(self, url: str) -> str:
-        """
-        Scrape the html from the given url with Python `requests` module
-        and return the response.
-        """
-        return requests.get(url).content.decode("utf-8")
-
-    def _fetch_html_with_selenium(self, url: str, wait_for: str | None, wait_timeout: int) -> str:
-        """
-        Scrape the html from the given url with Selenium and geckodriver
-        (Firefox driver) and return the response.
-        """
+    def _init_driver_attribute(self) -> None:
+        """ Initialize the Selenium driver and set the `driver`. """
         option = webdriver.FirefoxOptions()
         # I use the following options as my machine is a window subsystem linux.
         # I recommend to use the headless option at least, out of the 3
@@ -81,14 +68,46 @@ class BaseScraper:
         # replace \\ with / in path if in windows
         if os.name == "nt":
             driver_path = self.config["driver_path"].replace("\\", "/")
-        driver = webdriver.Firefox(executable_path=driver_path, options=option)
+        self.driver = webdriver.Firefox(
+            executable_path=driver_path, options=option)
 
-        # Getting page HTML through request
-        driver.get(url)
-        if wait_for:
-            WebDriverWait(driver, wait_timeout).until(
-                EC.visibility_of_element_located((By.CSS_SELECTOR, wait_for)))
-        return driver.page_source
+    def _init_display_attributes(self) -> None:
+        """ Initialize attributes for display purposes. """
+        self.display_url = self.url[:50] + \
+            "..." if not self.config["verbose_mode"] else self.url
+        self.display_file_path = self.file_path[:50] + \
+            "..." if not self.config["verbose_mode"] else self.file_path
+
+    def fetch_html(self) -> str:
+        """
+        Scrape the html from the given url and return the response. Use Selenium
+        to fetch html dynamically when the `driver_path` config key is set.
+        """
+        print(f"Fetching html from {self.display_url}")
+        if self.config["driver_path"]:
+            self.html = self._fetch_html_with_selenium()
+        else:
+            self.html = self._fetch_html_with_requests()
+        print("Done")
+        return self.html
+
+    def _fetch_html_with_requests(self) -> str:
+        """
+        Scrape the html from the given url with Python `requests` module
+        and return the response.
+        """
+        return requests.get(self.url).content.decode("utf-8")
+
+    def _fetch_html_with_selenium(self) -> str:
+        """
+        Scrape the html from the given url with Selenium and geckodriver
+        (Firefox driver) and return the response.
+        """
+        self.driver.get(self.url)
+        if self.wait_for:
+            WebDriverWait(self.driver, self.wait_timeout).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, self.wait_for)))
+        return self.driver.page_source
 
     def save_html(self) -> None:
         """ Save the html to the file. """
@@ -96,14 +115,3 @@ class BaseScraper:
         with open(self.file_path, 'w', encoding="utf-8") as f:
             f.write(self.html)
         print("Done")
-
-    def get_file_path(self) -> str:
-        """ Get the file path from `file_name` attribute. """
-        file_path = os.path.join(self.config["output_dir_path"], self.file_name.removesuffix(
-            ".html") + ".html")
-        if os.path.exists(file_path):
-            if input(f"{file_path} already exists. Overwrite? (y/n)") == "y":
-                os.remove(file_path)
-            else:
-                raise FileExistsError(f"{file_path} already exists")
-        return file_path
