@@ -5,8 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from utilities.config import Config
-from utilities.get_file_name_from_url import get_file_name_from_url
+from lib.utilities import Config, get_file_name_from_url
 
 
 class BaseScraper:
@@ -104,41 +103,3 @@ class BaseScraper:
             else:
                 raise FileExistsError(f"{file_path} already exists")
         return file_path
-
-
-def main(args=None):
-    """
-    Main function.
-
-    Command line syntax:
-    python base_scraper.py <url> [file_name] [config_name] [wait_for] [wait_timeout]
-
-    <> are required arguments
-    [] are optional arguments
-    """
-    try:
-        # initialize scraper
-        url = ""
-        while url == "":
-            url = args[0] if len(args) >= 1 else input("Enter URL: ")
-        file_name = args[1] if len(args) >= 2 else input(
-            "Enter file name (default is auto-generated): ")
-        config_name = args[2] if len(args) >= 3 else input(
-            "Enter config name (default: selescrape.json): ")
-        wait_for = args[3] if len(args) >= 4 else input(
-            "Enter wait for selector when fetching html (default: None): ")
-        wait_timeout = args[4] if len(args) >= 5 else input(
-            "Enter wait timeout when fetching html (default: 0): ")
-        scraper = BaseScraper(url, file_name, config_name,
-                              wait_for, wait_timeout)
-
-        # run scraper
-        scraper.fetch_html()
-        scraper.save_html()
-    except KeyboardInterrupt:
-        print("\nExiting...")
-
-
-if __name__ == '__main__':
-    import sys
-    main(sys.argv[1:])
