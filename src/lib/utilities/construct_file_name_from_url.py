@@ -2,9 +2,11 @@ import datetime
 from urllib.parse import urlparse
 
 
-def get_file_name_from_url(url: str) -> str:
+def construct_file_name_from_url(url: str) -> str:
+    """
+    Construct a file name from the given url.
+    """
     parsed_url = urlparse(url)
-    # construct normalized url
     return "".join([
         parsed_url.netloc,
         parsed_url.path.replace("/", "_"),
