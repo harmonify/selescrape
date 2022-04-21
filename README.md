@@ -1,6 +1,6 @@
 # Selescrape
 
-Selescrape is a [Python](https://www.python.org/) web [scraping](https://en.wikipedia.org/wiki/Web_scraping) project based on [Selenium](https://www.selenium.dev/) library.
+Selescrape is a [Python](https://www.python.org/) [web scraping](https://en.wikipedia.org/wiki/Web_scraping) project based on [Selenium](https://www.selenium.dev/) library.
 
 ## Disclaimer
 
