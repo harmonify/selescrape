@@ -5,29 +5,33 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from lib.utilities import Config, get_file_name_from_url
+from lib.utilities import Config, construct_file_name_from_url
 
 
 class BaseScraper:
+    """
+    The base scraper class with basic functionality.
+
+    Attributes:
+    - `url`: the url to scrape
+    - `file_name`: the file name to save the html
+    - `config_name`: the config file name (default: selescrape.json)
+                    in the project root directory
+    - `wait_for`: the css selector to wait for before scraping
+    - `wait_timeout`: the timeout in seconds to wait for the element
+    - `html`: the html content (available after calling `fetch_html`)
+    - `config`: the `Config` object containing configurations
+    - `file_path`: the file path to save the html
+
+    Methods:
+    - `fetch_html()`: fetch the html from the `url` attribute and return the html
+    - `save_html()`: save the html to `{config["output_dir_path"]}/{file_name}`
+    - `get_file_path()`: get the file path from `file_name` attribute
+    """
+
     def __init__(self, url: str, file_name: str = "", config_name: str = "", wait_for: str | None = None, wait_timeout: int = 0) -> None:
-        """
-        Initialize the scraper.
-
-        Attributes:
-        url: the url to scrape
-        file_name: the file name to save the html
-        config_name: the config file name (default: selescrape.json)
-                     in the project root directory
-        wait_for: the css selector to wait for before scraping
-        wait_timeout: the timeout in seconds to wait for the element
-
-        Methods:
-        fetch_html: fetch the html from the `url` attribute and return the html
-        save_html: save the html to `{config["output_dir_path"]}/{file_name}`
-        get_file_path: get the file path from `file_name` attribute
-        """
         self.url = url
-        self.file_name = file_name or get_file_name_from_url(url)
+        self.file_name = file_name or construct_file_name_from_url(url)
         self.config_name = config_name or "selescrape.json"
         self.wait_for = wait_for
         self.wait_timeout = wait_timeout or 0

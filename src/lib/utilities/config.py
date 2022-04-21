@@ -4,18 +4,23 @@ import os
 
 
 class Config:
+    """
+    The config class for selescrape.
+
+    Attributes:
+    - name: the config file name (default: selescrape.json)
+    - __location__: the path of the config script
+    - __project_root__: the path of the project root
+    - file_path: the config file path (defaulting to `name` attribute in the
+                 project root directory)
+    - data: the data of the config file
+
+    Methods:
+    - read_config(): read the config file and return the config dict
+    - initialize_config(): initialize the config file and return the config dict
+    """
+
     def __init__(self, name: str = "selescrape.json") -> None:
-        """
-        Initialize the config.
-
-        Attributes:
-        name: the config file name (default: selescrape.json) in the root directory
-        __location__: the path of the config script
-
-        Methods:
-        read_config: read the config file and return the config dict
-        initialize_config: initialize the config file and return the config dict
-        """
         self.__location__ = os.path.realpath(
             os.path.join(os.getcwd(), os.path.dirname(__file__)))
         self.__project_root__ = os.path.realpath(
