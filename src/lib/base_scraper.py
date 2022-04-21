@@ -18,7 +18,7 @@ class BaseScraper:
         url: the url to scrape
         file_name: the file name to save the html
         config_name: the config file name (default: selescrape.json)
-                     in the same directory
+                     in the project root directory
         wait_for: the css selector to wait for before scraping
         wait_timeout: the timeout in seconds to wait for the element
 

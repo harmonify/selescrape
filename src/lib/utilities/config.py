@@ -9,7 +9,7 @@ class Config:
         Initialize the config.
 
         Attributes:
-        name: the config file name (default: selescrape.json) in the same directory
+        name: the config file name (default: selescrape.json) in the root directory
         __location__: the path of the config script
 
         Methods:
@@ -19,8 +19,10 @@ class Config:
         self.__location__ = os.path.realpath(
             os.path.join(os.getcwd(), os.path.dirname(__file__)))
         self.name = name
+        # file_path: the path of the config file (defaulting to selescrape.json
+        # in the project root directory)
         self.file_path = os.path.realpath(
-            os.path.join(self.__location__, "..", self.name))
+            os.path.join(self.__location__, "..", "..", "..", self.name))
         self.data = self.read_config()
 
     def __repr__(self) -> str:
