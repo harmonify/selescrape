@@ -3,10 +3,9 @@
 *.log
 *.json
 
-# dump folder
+# folders
 dump
+selescrape-output
 
 # all dunder paths
 __*__
-__*__.py
-!__init__.py
