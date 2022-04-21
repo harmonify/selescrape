@@ -7,7 +7,7 @@ def main(args=None):
     Main function.
 
     Command line syntax:
-    python scrape_medium_trendings.py [file_name] [config_name] [wait_for] [wait_timeout]
+    python scrape_medium_article.py <url> [file_name] [config_name] [wait_for] [wait_timeout]
 
     <> are required arguments
     [] are optional arguments
