@@ -24,7 +24,7 @@ def main(args=None):
         wait_for = args[3] if len(args) >= 4 else input(
             "Enter wait for selector when fetching html (default: None): ")
         wait_timeout = args[4] if len(args) >= 5 else input(
-            "Enter wait timeout when fetching html (default: 0): ")
+            "Enter wait timeout when fetching html (default: 2): ")
         scraper = MediumArticleScraper(url, file_name, config_name,
                                        wait_for, wait_timeout)
         # run scraper
