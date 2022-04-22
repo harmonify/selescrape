@@ -24,13 +24,17 @@ class MediumTrendingLinksScraper(BaseScraper):
 
         soup = BeautifulSoup(self.html, 'html.parser')
         # find all links in trending posts
-        # implementation: find all article links in .pw-trending-post .am.cy and the second .hm.y
+        # implementation logic:
+        # article link is stored in `.pw-trending-post` > `.am.cy` > the second `.hm.y` > `a[href]` element
         print("Scraping trending links")
         for article in soup.find_all(class_="pw-trending-post"):
+            # get the article link
             link = article.find(class_="am cy").find_all(
                 class_="hm y")[1].find("a").get("href")
-            if re.match(r'^/[^@]', link):
-                link = "https://medium.com" + link
+            # clean article link
+            link = re.sub(r"\?.*", "", link)
+            link = re.sub(r"^/(.*)", "https://medium.com/" + r"\1", link)
+            # append to the list
             self.trending_links.append(link)
         print(f"Done. Found {len(self.trending_links)} links")
         return self.trending_links
