@@ -18,13 +18,16 @@ class MediumArticleScraper(BaseScraper):
         if self.driver is None:
             raise ValueError("Driver is needed to fetch the html")
 
+        print(f"Fetching html from {self.display_url}")
         self.driver.get(self.url)
+        # NOTE: racing condition, sometimes the page is not loaded yet
         time.sleep(1.5)
         # scroll to bottom of the page
         self.driver.execute_script(
             "window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(2)
         self.html = self.driver.page_source
+        print("Done")
         return self.html
 
     def scrape_article_content(self) -> str:
