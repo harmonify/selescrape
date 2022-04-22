@@ -32,7 +32,7 @@ class Config:
         self.data = self.read_config()
 
     def __repr__(self) -> str:
-        return f"Config('{self.name}')"
+        return f"<{self.__class__.__name__} name={self.name}>"
 
     def read_config(self) -> dict[str, str]:
         """ Read the config file and return the data. """
