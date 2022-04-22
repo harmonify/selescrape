@@ -40,15 +40,18 @@ class MediumArticleScraper(BaseScraper):
             print("No html to scrape")
             return
 
-        # filter out scripts
+        # delete out scripts
         soup = BeautifulSoup(self.html, 'html.parser')
         for script in soup.find_all('script'):
-            script.extract()
+            script.decompose()
 
-        # delete certain buggy elements when metered content is present
+        # delete certain buggy elements
+        # 1. general
+        soup.find("main").div.div.decompose()
+        # 2. when metered content is present
         metered_content_soup = soup.find("article", class_="meteredContent")
         if metered_content_soup:
-            metered_content_soup.div.div.extract()
+            metered_content_soup.div.div.decompose()
 
         # append url to bottom right of the article container
         soup.find("article").append(BeautifulSoup(
