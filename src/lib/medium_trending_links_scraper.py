@@ -4,11 +4,12 @@ import re
 from typing import List
 from bs4 import BeautifulSoup
 from lib import BaseScraper
+from lib.utilities import Config
 
 
 class MediumTrendingLinksScraper(BaseScraper):
-    def __init__(self, url: str, file_name: str = "", config_name: str = "", wait_for: str | None = None, wait_timeout: int = 0) -> None:
-        super().__init__(url, file_name, config_name, wait_for, wait_timeout)
+    def __init__(self, url: str, file_name: str = "", config: str | Config = "") -> None:
+        super().__init__(url, file_name, config, None, 0)
         self.trending_links = []
 
     def scrape_trending_links(self) -> List[str]:
@@ -49,7 +50,7 @@ class MediumTrendingLinksScraper(BaseScraper):
 
         print(
             f"Saving {len(self.trending_links)} trending links to {output_path}")
-        with open(f"{output_path}", 'w') as f:
+        with open(f"{output_path}", 'w', newline="\n") as f:
             for link in self.trending_links:
                 f.write(f"{link}\n")
         print("Done")
