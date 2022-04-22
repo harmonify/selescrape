@@ -46,7 +46,7 @@ class MediumTrendingLinksScraper(BaseScraper):
             return
 
         output_path = os.path.join(
-            self.config["output_dir_path"], output_file_name or self.file_name) + ".txt"
+            self.config.data["output_dir_path"], output_file_name or self.output_file_name) + ".txt"
 
         print(
             f"Saving {len(self.trending_links)} trending links to {output_path}")
