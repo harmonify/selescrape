@@ -32,13 +32,21 @@ def main(args=None):
             print(link)
         print("==============================\n")
 
-        # ask user to fetch articles or not
-        if input("Fetch the articles? (y/n) ") == "y":
-            for link in scraper.trending_links:
-                article = MediumArticleScraper(url=link, config=scraper.config)
-                article.fetch_html()
-                article.scrape_article_content()
-                article.save_html()
+        # ask user to choose to fetch the articles or not
+        while True:
+            answer = input("\nDo you want to fetch the articles? (y/n): ")
+            if answer == "y":
+                for link in scraper.trending_links:
+                    article = MediumArticleScraper(
+                        url=link, config=scraper.config)
+                    article.fetch_html()
+                    article.scrape_article_content()
+                    article.save_html()
+                break
+            elif answer == "n":
+                sys.exit(0)
+            else:
+                print("Please enter 'y' or 'n'.")
     except KeyboardInterrupt:
         print("\nExiting...")
 
