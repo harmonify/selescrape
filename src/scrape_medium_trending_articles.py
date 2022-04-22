@@ -1,4 +1,5 @@
 import sys
+import threading
 from lib import MediumTrendingLinksScraper, MediumArticleScraper
 
 
@@ -27,28 +28,37 @@ def main(args=None):
 
         # print out trending links
         print("\n==============================")
-        print("Trending article links:")
-        for link in scraper.trending_links:
-            print(link)
+        print("Trending article links:\n")
+        for i, link in enumerate(scraper.trending_links):
+            print(f"{i+1}). {link}\n")
         print("==============================\n")
 
         # ask user to choose to fetch the articles or not
         while True:
             answer = input("\nDo you want to fetch the articles? (y/n): ")
-            if answer == "y":
-                for link in scraper.trending_links:
-                    article = MediumArticleScraper(
-                        url=link, config=scraper.config)
-                    article.fetch_html()
-                    article.scrape_article_content()
-                    article.save_html()
-                break
-            elif answer == "n":
+            if answer == "n":
                 sys.exit(0)
-            else:
+            if answer != "y":
                 print("Please enter 'y' or 'n'.")
+                continue
+            threads = []
+            for link in scraper.trending_links:
+                t = threading.Thread(
+                    target=fetch_trending_article, args=(link, scraper.config))
+                t.start()
+                threads.append(t)
+            for t in threads:
+                t.join()
+            break
     except KeyboardInterrupt:
         print("\nExiting...")
+
+
+def fetch_trending_article(url, config):
+    article = MediumArticleScraper(url, config=config) # omit file_name
+    article.fetch_html()
+    article.scrape_article_content()
+    article.save_html()
 
 
 if __name__ == '__main__':
