@@ -14,48 +14,56 @@ class BaseScraper:
 
     Attributes:
     - `url`: the url to scrape
-    - `file_name`: the file name to save the html
-    - `config_name`: the config file name (default: selescrape.json)
-                    in the project root directory
-    - `wait_for`: the css selector to wait for before scraping
-    - `wait_timeout`: the timeout in seconds to wait for the element
+    - `output_file_name`: the file name to save the html
+    - `config`: the configuration object (default: `Config('selescrape.json')`)
+    - `wait_for_selector`: the css selector to wait for before returning the html
+    - `wait_for_selector_timeout`: the timeout in seconds to wait for the element
     - `html`: the html content (available after calling `fetch_html`)
-    - `config`: the `Config` object containing configurations
-    - `file_path`: the file path to save the html
+    - `output_file_path`: the file path to save the html
     - `driver`: the Selenium driver
     - `display_url`: the url to display in non-verbose mode
-    - `display_file_path`: the file path to display in non-verbose mode
+    - `display_output_file_path`: the file path to display in non-verbose mode
 
     Methods:
     - `fetch_html()`: fetch the html from the `url` attribute and return the html
-    - `save_html()`: save the html to `{config["output_dir_path"]}/{file_name}`
+    - `save_html()`: save the html to `{config["output_dir_path"]}/{output_file_name}`
     """
 
-    def __init__(self, url: str, file_name: str = "", config_name: str = "", wait_for: str | None = None, wait_timeout: int = 0) -> None:
-        self.url = url
-        self.file_name = file_name or construct_file_name_from_url(url)
-        self.config_name = config_name or "selescrape.json"
-        self.wait_for = wait_for
-        self.wait_timeout = wait_timeout or 0
+    def __init__(self, url: str, output_file_name: str = "", config: str | Config = "", wait_for_selector: str | None = None, wait_for_selector_timeout: int = 0) -> None:
+        self._init_url_attribute(url)
+        self.output_file_name = output_file_name or construct_file_name_from_url(
+            url)
+        self.wait_for_selector = wait_for_selector
+        self.wait_for_selector_timeout = wait_for_selector_timeout or 0
         self.html = ""
-        self.config = Config(self.config_name).data
-        self._init_file_path_attribute()
+        self._init_config_attribute(config)
+        self._init_output_file_path_attribute()
         self._init_driver_attribute()
         self._init_display_attributes()
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} url={self.url} file_name={self.file_name}>"
+        return f"<{self.__class__.__name__} url={self.url} output_file_name={self.output_file_name}>"
 
-    def _init_file_path_attribute(self) -> None:
-        """ Set the `file_path` from `file_name` attribute. """
-        file_path = os.path.join(self.config["output_dir_path"], self.file_name.removesuffix(
-            ".html") + ".html")
-        if os.path.exists(file_path):
-            if input(f"{file_path} already exists. Overwrite? (y/n)") == "y":
-                os.remove(file_path)
-            else:
-                raise FileExistsError(f"{file_path} already exists")
-        self.file_path = file_path
+    def _init_url_attribute(self, url: str) -> None:
+        """ Initialize the `url` attribute. """
+        if not url or url.startswith("http://") or url.startswith("https://"):
+            self.url = url
+        else:
+            self.url = f"https://{url}"
+
+    def _init_config_attribute(self, config: str | Config) -> None:
+        """ Initialize the `config` attribute. """
+        if isinstance(config, str):
+            self.config = Config(config or "selescrape.json")
+        else:
+            self.config = config
+
+    def _init_output_file_path_attribute(self) -> None:
+        """ Set the `output_file_path` from `output_file_name` attribute. """
+        self.output_file_path = os.path.join(
+            self.config.data["output_dir_path"],
+            self.output_file_name.removesuffix(".html") + ".html"
+        )
 
     def _init_driver_attribute(self) -> None:
         """ Initialize the Selenium driver and set the `driver`. """
@@ -67,24 +75,30 @@ class BaseScraper:
         option.add_argument('--disable-dev-sh-usage')
         # replace \\ with / in path if in windows
         if os.name == "nt":
-            driver_path = self.config["driver_path"].replace("\\", "/")
+            driver_path = self.config.data["driver_path"].replace("\\", "/")
         self.driver = webdriver.Firefox(
             executable_path=driver_path, options=option)
 
     def _init_display_attributes(self) -> None:
         """ Initialize attributes for display purposes. """
-        self.display_url = self.url[:50] + \
-            "..." if not self.config["verbose_mode"] else self.url
-        self.display_file_path = self.file_path[:50] + \
-            "..." if not self.config["verbose_mode"] else self.file_path
+        if not self.url:
+            self.display_url = None
+        else:
+            self.display_url = self.url[:50] + \
+                "..." if not self.config.data["verbose_mode"] else self.url
+        self.display_output_file_path = self.output_file_path[:50] + \
+            "..." if not self.config.data["verbose_mode"] else self.output_file_path
 
     def fetch_html(self) -> str:
         """
         Scrape the html from the given url and return the response. Use Selenium
         to fetch html dynamically when the `driver_path` config key is set.
         """
+        if self.url == "" or self.url is None:
+            raise ValueError("url is empty")
+
         print(f"Fetching html from {self.display_url}")
-        if self.config["driver_path"]:
+        if self.config.data["driver_path"]:
             self.html = self._fetch_html_with_selenium()
         else:
             self.html = self._fetch_html_with_requests()
@@ -104,14 +118,40 @@ class BaseScraper:
         (Firefox driver) and return the response.
         """
         self.driver.get(self.url)
-        if self.wait_for:
-            WebDriverWait(self.driver, self.wait_timeout).until(
-                EC.visibility_of_element_located((By.CSS_SELECTOR, self.wait_for)))
+        if self.wait_for_selector:
+            WebDriverWait(self.driver, self.wait_for_selector_timeout).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, self.wait_for_selector)))
         return self.driver.page_source
 
+    def load_html(self, file_path: str) -> str:
+        """
+        Load the html from the given `file_path`, set the `html` attribute
+        and return the html.
+        """
+        if self.config.data['verbose_mode']:
+            display_file_path = file_path
+        else:
+            display_file_path = file_path[:50] + "..."
+
+        print(f"Loading html from {display_file_path}")
+        with open(file_path, "r", encoding="utf-8") as f:
+            self.html = f.read()
+        print("Done")
+        return self.html
+
     def save_html(self) -> None:
-        """ Save the html to the file. """
-        print(f"Saving html to {self.display_file_path}")
-        with open(self.file_path, 'w', encoding="utf-8") as f:
+        """
+        Save the `html` attribute to the file using `output_file_path` attribute.
+        Raise `FileExistsError` if the file already exists and user chooses
+        to not overwrite the file.
+        """
+        print(f"Saving html to {self.display_output_file_path}")
+        if os.path.exists(self.output_file_path):
+            if input(f"{self.output_file_path} already exists. Overwrite? (y/n)") == "y":
+                os.remove(self.output_file_path)
+            else:
+                raise FileExistsError(
+                    f"{self.output_file_path} already exists")
+        with open(self.output_file_path, 'w', encoding="utf-8", newline="\n") as f:
             f.write(self.html)
         print("Done")
