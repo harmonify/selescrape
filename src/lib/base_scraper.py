@@ -44,6 +44,14 @@ class BaseScraper:
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} url={self.url} output_file_name={self.output_file_name}>"
 
+    def __del__(self):
+        """
+        The destructor method.
+
+        - Close the Selenium driver
+        """
+        self.driver.quit()
+
     def _init_url_attribute(self, url: str) -> None:
         """ Initialize the `url` attribute. """
         if not url or url.startswith("http://") or url.startswith("https://"):
