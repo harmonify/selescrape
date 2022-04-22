@@ -41,7 +41,7 @@ class MediumArticleScraper(BaseScraper):
         soup = BeautifulSoup(self.html, 'html.parser')
         for script in soup.find_all('script'):
             script.extract()
-        
+
         # delete certain buggy elements when metered content is present
         metered_content_soup = soup.find("article", class_="meteredContent")
         if metered_content_soup:
@@ -52,5 +52,5 @@ class MediumArticleScraper(BaseScraper):
             f"<br><div style=\"z-index: 999\"><a href=\"{self.url}\" style=\"float: right\">View on Medium</a></div>", 'html.parser'))
 
         # remove all line endings (lf or crlf)
-        self.html = re.sub(r"[\r\n]*", "", str(soup));
+        self.html = re.sub(r"[\r\n]*", "", str(soup))
         return self.html
