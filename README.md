@@ -10,7 +10,7 @@ This project is only for educational purposes. I do not encourage anyone to scra
 
 1. Install [Firefox](https://www.mozilla.org/en-US/firefox/new/) browser.
 2. Install [geckodriver](https://github.com/mozilla/geckodriver/releases) for Firefox.
-3. Install [Python](https://www.python.org/) 3.7+.
+3. Install [Python](https://www.python.org/) 3.9+.
 4. Add Python to PATH.
 5. Install required packages.
 
